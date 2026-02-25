@@ -39,7 +39,27 @@ int main ()
     cudaMalloc(&cB, size);
     cudaMalloc(&cC, size);
 
+    cudaMemcpy(cA, A, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(cB, B, size, cudaMemcpyHostToDevice);
     
+    vectorAD<<<2, 256>>>(cA, cB, cC);
 
+    cudaMemcpy(C, cC, size, cudaMemcpyDeviceToHost);
 
-}
+    for (i = 0; i < 10; i++){
+        std::cout << "vec 1 " << A[i] << " ";
+    } std::cout << std::endl; 
+
+    for (i = 0; i < 10; i++){
+        std::cout << "vec 2 " << B[i] << " ";
+    } std::cout << std::endl; 
+
+    for (i = 0; i < 10; i++){
+        std::cout << "vec 1 + vec 2 = vec 3 " << C[i] << " ";
+    } std::cout << std::endl; 
+    
+    cudaFree(cA);
+    cudaFree(cB);
+    cudaFree(cC);
+    return 0;
+}   
