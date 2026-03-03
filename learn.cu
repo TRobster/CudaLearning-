@@ -58,6 +58,10 @@ int main ()
         std::cout << "vec 1 + vec 2 = vec 3 " << C[i] << " ";
     } std::cout << std::endl; 
     
+
+    free(A);
+    free(B);
+    free(C);
     cudaFree(cA);
     cudaFree(cB);
     cudaFree(cC);
