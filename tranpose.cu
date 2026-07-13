@@ -9,7 +9,7 @@
 static int square = (TILE_DIM * TILE_DIM);
 
 
-__global__ copy(float *out, float *in)
+__global__ void copy(float *out, float *in)
 {
     int row = TILE_DIM * blockIdx.x + threadIdx.x;
     int col = TILE_DIM * blockIdx.y + threadIdx.y;
@@ -32,7 +32,7 @@ int main()
 
     for (int i = 0; i < square; i += 2)
     {
-        u_old = i; 
+        u_old[i] = (float)i; 
     }
     // Device memory allocating
     float *d_u_old, *d_u_new;
