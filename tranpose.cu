@@ -96,7 +96,7 @@ int main()
     }   
 
     // verify and check 
-    if (count == sum)
+    if (compare == sum)
     {
        cout << "sum of square is " << sum << endl; 
     }
