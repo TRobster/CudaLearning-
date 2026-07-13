@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <math.h>
 
+
 #define TILE_DIM 32
 #define BLOCK_ROWS 8
 static int square = (TILE_DIM * TILE_DIM);
 
+using namespace std; 
 using ul = unsigned long; 
 
 __global__ void copy(float *out, float *in)
@@ -27,8 +29,9 @@ int main()
 {
 
      // Host memory allocating 
-    float *u_old;
+    float *u_old, *u_new; 
     u_old = (float*)malloc(sizeof(float) * square);
+    u_new= (float*)malloc(sizeof(float) * square);
 
 
     for (int i = 0; i < square; i += 2)
@@ -37,8 +40,8 @@ int main()
     }
     // Device memory allocating
     float *d_u_old, *d_u_new;
-    cudaMalloc(d_u_old, sizeof(float) * square);
-    cudaMalloc(d_u_new, sizeof(float) * square);
+    cudaMalloc((void**)d_u_old, sizeof(float) * square);
+    cudaMalloc((void**)d_u_new, sizeof(float) * square);
     ul tSize = (ul) (sizeof(float) * square) ; 
 
     // Pull data from host -> device
@@ -47,5 +50,14 @@ int main()
     dim3 block(TILE_DIM, BLOCK_ROWS);
     dim3 gridDim(32, 32); 
     copy<<<gridDim, block>>>(d_u_old, d_u_new);
+
+    cudaMemcpy(u_new, d_u_new, tSize, cudaMemcpyDeviceToHost); 
+
+    float sum = 0;
+    for (int i = 0; i < square, i++)
+    {
+        sum+= (float) i;
+    }   
+    cout << "sum of square is" << sum << endl;
 
 }
