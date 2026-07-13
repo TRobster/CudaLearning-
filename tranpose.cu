@@ -75,11 +75,11 @@ int main()
     cudaMemcpy(d_u_old, u_old, tSize, cudaMemcpyHostToDevice);
 
     // Needed threads, running copy function 
+    cudaEventRecord(stop);
     dim3 block(TILE_DIM, BLOCK_ROWS);
     dim3 gridDim(32, 32); 
     copy<<<gridDim, block>>>(d_u_old, d_u_new);
 
-    cudaEventRecord(stop);
     cudaEventSynchronize(stop);
 
     float milliseconds = 0;
