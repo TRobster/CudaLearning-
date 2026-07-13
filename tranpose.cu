@@ -8,6 +8,7 @@
 #define BLOCK_ROWS 8
 static int square = (TILE_DIM * TILE_DIM);
 
+using ul = unsigned long; 
 
 __global__ void copy(float *out, float *in)
 {
@@ -38,10 +39,10 @@ int main()
     float *d_u_old, *d_u_new;
     cudaMalloc(d_u_old, sizeof(float) * square);
     cudaMalloc(d_u_new, sizeof(float) * square);
+    ul tSize = (ul) (sizeof(float) * square) ; 
 
     // Pull data from host -> device
-    cudaMemcpy(d_u_old, u_old, sizeof(float) * square, cudaMemcpyHostToDevice);
-
+    cudaMemcpy(d_u_old, u_old, tSize, cudaMemcpyHostToDevice); 
     // Needed threads
     dim3 block(TILE_DIM, BLOCK_ROWS);
     dim3 gridDim(32, 32); 
