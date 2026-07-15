@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <math.h>
-#include "benchmark.cu"
+#include "benchmark.cuh"
 
 // Square in nature, assume 32 x 32 
 #define TILE_DIM 32

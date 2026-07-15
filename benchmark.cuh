@@ -12,12 +12,6 @@
 // This file intentionally contains ONLY benchmarking machinery —
 // no kernel logic, no problem-specific launch configs, no application code.
 
-#pragma once
-
-#include <cuda_runtime.h>
-#include <functional>
-#include <iostream>
-#include <string>
 
 struct BenchResult
 {
