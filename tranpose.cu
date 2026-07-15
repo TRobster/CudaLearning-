@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <math.h>
+#include "benchmark.cu"
 
 // Square in nature, assume 32 x 32 
 #define TILE_DIM 32
@@ -41,6 +42,22 @@ __global__ void transposeNaive(float *in, float *out)
 
 }
 
+__global__ void transposeCoalesced(float *in, float *out)
+{
+    __shared__ TILEBLOCK[TILE_DIM][TILE_DIM];
+    int x = TILE_DIM * blockIdx.x + threadIdx.x;
+    int y = TILE_DIM * blockIdx.y + threadIdx.y;
+    int width = gridDim.x * TILE_DIM;
+    for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
+    {
+        TILEBLOCK[threadIdx.y + j][threadIdx.x]  = in[((y + j) * width) +  x];
+    }
+    __syncthreads();
+
+    int tilex=
+
+}
+
 int main()
 {
 
@@ -63,6 +80,8 @@ int main()
     {
         u_old[i] = (float)i; 
     }
+    cout << "edge element is (before tpose) " << u_old[511] << endl; 
+
     // Device memory allocating
     float *d_u_old, *d_u_new;
 
@@ -79,11 +98,11 @@ int main()
 
     dim3 block(TILE_DIM, BLOCK_ROWS);
     // squareable 
-    size_t grid_sz = 512 / TILE_DIM; 
+    size_t grid_sz = sqrt(square) / TILE_DIM; 
     dim3 gridDim(grid_sz, grid_sz); 
 
     cudaEventRecord(start);
-    copy<<<gridDim, block>>>(d_u_old, d_u_new);
+    transposeNaive<<<gridDim, block>>>(d_u_old, d_u_new);
     cudaEventRecord(stop);
 
     cudaEventSynchronize(stop);
@@ -95,16 +114,11 @@ int main()
 
     cudaMemcpy(u_new, d_u_new, tSize, cudaMemcpyDeviceToHost); 
     
-    float sum = 0;
-    for (int i = 0; i < square; i++)
-    {
-        sum += (float)(u_new[i]);
-    }   
     
     // verify and check 
     //if (compare == sum)
     //{
-    cout << "sum of square is " << sum << endl; 
+    cout << "edge element is (tpose worked) " << u_new[511] << endl; 
     //}
 
     // host
