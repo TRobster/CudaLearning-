@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <math.h>
+#include <functional>
 #include "benchmark.cuh"
 
 // Square in nature, assume 32 x 32 
@@ -12,7 +13,7 @@
 #define BLOCK_ROWS 8
 
 // Dummy matrix dimensions
-static int square = 512 * 512;
+static int square = 8192 * 8192;
 
 using namespace std; 
 using ul = unsigned long; 
@@ -42,6 +43,7 @@ __global__ void transposeNaive(float *in, float *out)
 
 }
 
+/*
 __global__ void transposeCoalesced(float *in, float *out)
 {
     __shared__ TILEBLOCK[TILE_DIM][TILE_DIM];
@@ -57,15 +59,10 @@ __global__ void transposeCoalesced(float *in, float *out)
     int tilex=
 
 }
+*/
 
 int main()
 {
-
-    // 1. Declare and create the events
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-
     // sanity check 
     float compare = (float) ((square * ((square - 1)) / 2));
 
@@ -80,7 +77,7 @@ int main()
     {
         u_old[i] = (float)i; 
     }
-    cout << "edge element is (before tpose) " << u_old[511] << endl; 
+    //cout << "edge element is (before tpose) " << u_old[511] << endl; 
 
     // Device memory allocating
     float *d_u_old, *d_u_new;
@@ -101,24 +98,17 @@ int main()
     size_t grid_sz = sqrt(square) / TILE_DIM; 
     dim3 gridDim(grid_sz, grid_sz); 
 
-    cudaEventRecord(start);
-    transposeNaive<<<gridDim, block>>>(d_u_old, d_u_new);
-    cudaEventRecord(stop);
-
-    cudaEventSynchronize(stop);
-
-    float milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-
-    cout << "Kernel Execution Time: " << milliseconds << " ms\n";
+    size_t bytes_moved = 2ull * (size_t)square * sizeof(float);
+    auto launch_copy = [&]() { copy<<<gridDim, block>>>(d_u_old, d_u_new); };
+    BenchResult r = benchmarkKernel(launch_copy);
+    r.print("copy", bytes_moved);
 
     cudaMemcpy(u_new, d_u_new, tSize, cudaMemcpyDeviceToHost); 
-    
     
     // verify and check 
     //if (compare == sum)
     //{
-    cout << "edge element is (tpose worked) " << u_new[511] << endl; 
+    //cout << "edge element is (tpose worked) " << u_new[511] << endl; 
     //}
 
     // host
@@ -129,7 +119,4 @@ int main()
     cudaFree(d_u_old);
     cudaFree(d_u_new);
 
-    // timing 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
 }

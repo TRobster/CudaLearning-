@@ -1,0 +1,8 @@
+(base) [trevorro@n0150 CudaLearning-]$ ./tranpose
+copy: 0.771789 ms/launch, 695.619 GB/s (avg over 20 runs)
+(base) [trevorro@n0150 CudaLearning-]$ ./tranpose
+copy: 0.771072 ms/launch, 696.266 GB/s (avg over 20 runs)
+(base) [trevorro@n0150 CudaLearning-]$ ./tranpose
+copy: 0.771174 ms/launch, 696.173 GB/s (avg over 20 runs)
+(base) [trevorro@n0150 CudaLearning-]$ ./tranpose
+copy: 0.772096 ms/launch, 695.342 GB/s (avg over 20 runs)
