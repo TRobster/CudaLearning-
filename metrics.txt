@@ -6,3 +6,24 @@ copy: 0.771072 ms/launch, 696.266 GB/s (avg over 20 runs)
 copy: 0.771174 ms/launch, 696.173 GB/s (avg over 20 runs)
 (base) [trevorro@n0150 CudaLearning-]$ ./tranpose
 copy: 0.772096 ms/launch, 695.342 GB/s (avg over 20 runs)
+
+(ie copy in its base form T = 32, BR = 8, has about 696ish gbs)
+
+
+//Below I completely forgot to edit the block_rows from 16 -> 8, so below are a double stride tiling method
+
+    copy: 0.79575 ms/launch, 674.673 GB/s (avg over 20 runs)
+    transpose: 3.57914 ms/launch, 150 GB/s (avg over 20 runs)
+    transposeCOAL: 1.55469 ms/launch, 345.324 GB/s (avg over 20 runs)
+
+// Upgrading copy to coalesced vs normal allows for a decent increase
+
+    copy upgrade: 0.756173 ms/launch, 709.984 GB/s (avg over 20 runs)
+    transpose: 3.57929 ms/launch, 149.994 GB/s (avg over 20 runs)
+    transposeCOAL: 1.55192 ms/launch, 345.939 GB/s (avg over 20 runs)
+
+
+// Finally, we get out 32 
+copy upgrade: 0.697293 ms/launch, 769.936 GB/s (avg over 20 runs)
+transpose: 3.56019 ms/launch, 150.798 GB/s (avg over 20 runs)
+transposeCOAL: 0.745677 ms/launch, 719.978 GB/s (avg over 20 runs

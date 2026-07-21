@@ -43,10 +43,10 @@ __global__ void transposeNaive(float *in, float *out)
 
 }
 
-/*
+
 __global__ void transposeCoalesced(float *in, float *out)
 {
-    __shared__ TILEBLOCK[TILE_DIM][TILE_DIM];
+    __shared__ float TILEBLOCK[TILE_DIM][TILE_DIM+1];
     int x = TILE_DIM * blockIdx.x + threadIdx.x;
     int y = TILE_DIM * blockIdx.y + threadIdx.y;
     int width = gridDim.x * TILE_DIM;
@@ -56,10 +56,37 @@ __global__ void transposeCoalesced(float *in, float *out)
     }
     __syncthreads();
 
-    int tilex=
+    // Write 
+    x = blockIdx.y * TILE_DIM + threadIdx.x;
+    y = blockIdx.x * TILE_DIM + threadIdx.y;
+
+    for (int j = 0; j < TILE_DIM; j+=BLOCK_ROWS) 
+    {
+        out[((y+j) * width) + x] = TILEBLOCK[threadIdx.x][threadIdx.y + j];
+    }
 
 }
-*/
+
+__global__ void copyCoalesced(float *in, float *out)
+{
+     __shared__ float TILEBLOCK[TILE_DIM * TILE_DIM];
+    int x = TILE_DIM * blockIdx.x + threadIdx.x;
+    int y = TILE_DIM * blockIdx.y + threadIdx.y;
+    int width = gridDim.x * TILE_DIM;
+    for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
+    {
+        TILEBLOCK[((threadIdx.y + j) * TILE_DIM)+ threadIdx.x]   = in[((y + j) * width) + x];
+    }
+
+    __syncthreads();
+
+    for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
+    {
+       out[((y + j) * width) +  x] = TILEBLOCK[((threadIdx.y + j) * TILE_DIM)+ threadIdx.x];
+    }
+
+}
+
 
 int main()
 {
@@ -99,9 +126,17 @@ int main()
     dim3 gridDim(grid_sz, grid_sz); 
 
     size_t bytes_moved = 2ull * (size_t)square * sizeof(float);
-    auto launch_copy = [&]() { copy<<<gridDim, block>>>(d_u_old, d_u_new); };
+    auto launch_copy = [&]() { copyCoalesced<<<gridDim, block>>>(d_u_old, d_u_new); };
     BenchResult r = benchmarkKernel(launch_copy);
-    r.print("copy", bytes_moved);
+    r.print("copy upgrade", bytes_moved);
+    
+    auto launch_tp = [&]() { transposeNaive<<<gridDim, block>>>(d_u_old, d_u_new); };
+    BenchResult z = benchmarkKernel(launch_tp);
+    z.print("transpose", bytes_moved);
+
+    auto launch_tpC = [&]() { transposeCoalesced<<<gridDim, block>>>(d_u_old, d_u_new); };
+    BenchResult x = benchmarkKernel(launch_tpC);
+    x.print("transposeCOAL", bytes_moved);
 
     cudaMemcpy(u_new, d_u_new, tSize, cudaMemcpyDeviceToHost); 
     
