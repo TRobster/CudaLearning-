@@ -6,15 +6,13 @@
 #include <functional>
 #include "benchmark.cuh"
 
+// Dummy matrix dimensions
+static int square = 8192 * 8192;
 // Square in nature, assume 32 x 32 
 #define TILE_DIM 32
 
 // Individual chunks pulled into the 
 #define BLOCK_ROWS 8
-
-// Dummy matrix dimensions
-static int square = 8192 * 8192;
-
 using namespace std; 
 using ul = unsigned long; 
 
